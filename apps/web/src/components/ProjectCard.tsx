@@ -3,7 +3,8 @@
 import React from 'react';
 import type { Project } from '@hub/shared';
 import { ExternalLink, Github, Sparkles } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
@@ -12,6 +13,8 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const { t } = useLanguage();
+
   return (
     <Card className="flex flex-col justify-between group">
       {/* Optional Cover image / header gradient */}
@@ -31,7 +34,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="absolute top-3 right-3 flex items-center space-x-1.5">
           {project.featured && (
             <Badge variant="emerald" className="text-[10px] font-semibold">
-              Featured
+              {t.projects.featured}
             </Badge>
           )}
           <Badge variant="default" className="text-[10px] uppercase font-mono">
@@ -71,7 +74,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
                 <Button variant="ghost" size="sm" className="h-8 px-2.5 text-xs text-neutral-400 hover:text-white">
                   <Github className="w-3.5 h-3.5 mr-1.5" />
-                  Code
+                  {t.projects.code}
                 </Button>
               </a>
             )}
@@ -79,7 +82,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
                 <Button variant="glassEmerald" size="sm" className="h-8 px-2.5 text-xs">
                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                  Live
+                  {t.projects.live}
                 </Button>
               </a>
             )}

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowDownRight, Download, Github, Linkedin, Mail, Sparkles, Terminal } from 'lucide-react';
+import { ArrowDownRight, Download, Github } from 'lucide-react';
 import type { Profile } from '@hub/shared';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Button } from './ui/button';
 
 interface HeroSectionProps {
@@ -11,9 +12,10 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ profile }: HeroSectionProps) {
+  const { t } = useLanguage();
   const fullName = profile?.fullName || 'Ivan De Stefani';
-  const headline = profile?.headline || 'Full Stack Engineer & Cloud Architect';
-  const bio = profile?.bio || 'Designing resilient, distributed systems, high-speed web apps, and automated zero-downtime deployment pipelines with Caddy and Docker.';
+  const headline = profile?.headline || t.hero.headline;
+  const bio = profile?.bio || t.hero.bio;
 
   return (
     <section className="relative pt-20 pb-16 overflow-hidden">
@@ -32,13 +34,13 @@ export function HeroSection({ profile }: HeroSectionProps) {
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-glass">
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
             <span className="text-xs font-mono text-neutral-300">
-              Zero-Downtime Blue/Green Architecture
+              {t.hero.statusPill}
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight">
-            <span className="text-white">Hello, I am </span>
+            <span className="text-white">{t.hero.hello} </span>
             <span className="text-gradient-sapphire">{fullName}</span>
           </h1>
 
@@ -54,7 +56,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <a href="#projects">
               <Button variant="emerald" size="lg" className="group">
-                <span>Explore Showcase</span>
+                <span>{t.hero.exploreShowcase}</span>
                 <ArrowDownRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" />
               </Button>
             </a>
@@ -63,7 +65,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
               <a href={profile.cvPdfUrl} target="_blank" rel="noopener noreferrer">
                 <Button variant="glass" size="lg" className="border-white/15">
                   <Download className="w-4 h-4 mr-2 text-sapphire-light" />
-                  <span>Download Curriculum</span>
+                  <span>{t.hero.downloadCv}</span>
                 </Button>
               </a>
             ) : null}
@@ -71,7 +73,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
             <a href="https://github.com/ivandestefani" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="lg" className="border-white/15">
                 <Github className="w-4 h-4 mr-2" />
-                <span>GitHub</span>
+                <span>{t.hero.github}</span>
               </Button>
             </a>
           </div>

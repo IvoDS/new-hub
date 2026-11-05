@@ -4,14 +4,16 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Terminal, Shield, Layers, ExternalLink } from 'lucide-react';
+import { Shield, Globe } from 'lucide-react';
 import { api } from '@/lib/apiClient';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Badge } from './ui/badge';
 import { cn } from './ui/button';
 
 export function Navigation() {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
+  const { locale, toggleLocale, t } = useLanguage();
 
   // Query current active deployment slot for live header indicator
   const { data: deploymentData } = useQuery({
@@ -44,8 +46,8 @@ export function Navigation() {
           </div>
         </Link>
 
-        {/* Live Slot & Navigation items */}
-        <div className="flex items-center space-x-6">
+        {/* Live Slot, Nav, Language Switcher & Admin */}
+        <div className="flex items-center space-x-4 sm:space-x-6">
           <nav className="hidden md:flex items-center space-x-1">
             <Link
               href="/"
@@ -54,25 +56,39 @@ export function Navigation() {
                 !isAdmin ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white hover:bg-white/5'
               )}
             >
-              Portfolio
+              {t.nav.portfolio}
             </Link>
             <Link
               href="/#projects"
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
             >
-              Projects
+              {t.nav.projects}
             </Link>
             <Link
               href="/#skills"
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
             >
-              Architecture
+              {t.nav.architecture}
             </Link>
           </nav>
 
+          {/* Language Switcher Icon Button */}
+          <button
+            onClick={toggleLocale}
+            title={t.nav.langSwitch}
+            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg glass-card border border-white/10 hover:border-emerald/40 text-neutral-300 hover:text-white transition-all duration-200 group"
+          >
+            <Globe className="w-3.5 h-3.5 text-emerald-light group-hover:rotate-45 transition-transform duration-300" />
+            <span className="text-xs font-mono font-semibold tracking-wider">
+              {locale.toUpperCase()}
+            </span>
+          </button>
+
           {/* Active slot indicator badge */}
           <div className="flex items-center space-x-2 pl-3 border-l border-white/10">
-            <span className="text-[11px] text-neutral-400 font-mono hidden sm:inline">Active Slot:</span>
+            <span className="text-[11px] text-neutral-400 font-mono hidden sm:inline">
+              {t.nav.activeSlot}:
+            </span>
             <Badge variant={activeSlot === 'blue' ? 'sapphire' : 'emerald'} className="capitalize font-mono">
               <span className={cn('w-1.5 h-1.5 rounded-full mr-1.5', activeSlot === 'blue' ? 'bg-sapphire-light animate-pulse' : 'bg-emerald animate-pulse')} />
               {activeSlot}
@@ -90,7 +106,7 @@ export function Navigation() {
             )}
           >
             <Shield className="w-3.5 h-3.5" />
-            <span>{isAdmin ? 'Exit Admin' : 'Admin Hub'}</span>
+            <span className="hidden sm:inline">{isAdmin ? t.nav.exitAdmin : t.nav.adminHub}</span>
           </Link>
         </div>
       </div>

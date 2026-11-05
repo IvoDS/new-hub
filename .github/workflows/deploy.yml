@@ -1,0 +1,116 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-and-verify:
+    name: Test & Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify TypeScript Types
+        run: pnpm typecheck
+
+      - name: Run Test Suite
+        run: pnpm test
+
+      - name: Verify Production Next.js & Fastify Build
+        run: pnpm build
+
+  deploy-standby-slot:
+    name: Build & Deploy to Standby Slot
+    needs: test-and-verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}/web
+            ghcr.io/${{ github.repository }}/api
+
+      - name: Build & Push Web Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.web
+          push: true
+          tags: ghcr.io/${{ github.repository }}/web:${{ github.sha }},ghcr.io/${{ github.repository }}/web:latest
+
+      - name: Build & Push API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.api
+          push: true
+          tags: ghcr.io/${{ github.repository }}/api:${{ github.sha }},ghcr.io/${{ github.repository }}/api:latest
+
+      - name: Deploy to Standby Slot on Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        if: ${{ env.SSH_HOST != '' }}
+        env:
+          SSH_HOST: ${{ secrets.SERVER_HOST }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /opt/ivandestefani-hub || cd ~/ivandestefani-hub
+            git pull origin main
+            
+            # Pull latest built containers
+            docker compose -f docker/docker-compose.prod.yml pull
+            
+            # Start/update backend API and database
+            docker compose -f docker/docker-compose.prod.yml up -d mariadb api
+            
+            # Determine standby slot from Hub backend API
+            ACTIVE_SLOT=$(curl -s http://127.0.0.1:4000/api/deployments | grep -o '"activeSlot":"[^"]*"' | cut -d'"' -f4)
+            if [ "$ACTIVE_SLOT" = "blue" ]; then
+              STANDBY_SLOT="green"
+            else
+              STANDBY_SLOT="blue"
+            fi
+            
+            echo "Active slot is $ACTIVE_SLOT. Updating standby container 'web-$STANDBY_SLOT'..."
+            docker compose -f docker/docker-compose.prod.yml up -d --no-deps --build web-$STANDBY_SLOT
+            
+            # Register deployment in Hub for manual approval gating
+            curl -s -X POST http://127.0.0.1:4000/api/deployments/webhook \
+              -H "Content-Type: application/json" \
+              -d "{\"projectName\":\"ivandestefani.it\",\"commitHash\":\"${{ github.sha }}\",\"commitMessage\":\"${{ github.event.head_commit.message }}\",\"imageTag\":\"${{ github.sha }}\"}"
+            
+            echo "Standby container web-$STANDBY_SLOT is online and awaiting manual promotion in Admin Hub!"

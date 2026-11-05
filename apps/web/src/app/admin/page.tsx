@@ -21,8 +21,10 @@ import type { Project, CreateProjectInput, DeploymentSlot } from '@hub/shared';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdminPage() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'deployments' | 'projects' | 'assets'>('deployments');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -131,18 +133,18 @@ export default function AdminPage() {
           <div className="flex items-center space-x-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald shadow-emerald-glow animate-pulse" />
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Admin & Deployment Manager
+              {t.admin.title}
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-            Zero-downtime routing controller & content management interface for ivandestefani.it
+            {t.admin.subtitle}
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
           <Badge variant="emerald" className="px-3 py-1 text-xs">
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-            Dev Admin Mode (Bypass Active)
+            {t.admin.devMode}
           </Badge>
         </div>
       </div>
@@ -155,7 +157,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('deployments')}
         >
           <Activity className="w-3.5 h-3.5 mr-2" />
-          Blue/Green Controller
+          {t.admin.tabs.deployments}
         </Button>
         <Button
           variant={activeTab === 'projects' ? 'emerald' : 'glass'}
@@ -163,7 +165,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('projects')}
         >
           <FileText className="w-3.5 h-3.5 mr-2" />
-          Projects Manager
+          {t.admin.tabs.projects}
         </Button>
         <Button
           variant={activeTab === 'assets' ? 'emerald' : 'glass'}
@@ -171,7 +173,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('assets')}
         >
           <UploadCloud className="w-3.5 h-3.5 mr-2" />
-          Static Assets & CV
+          {t.admin.tabs.assets}
         </Button>
       </div>
 

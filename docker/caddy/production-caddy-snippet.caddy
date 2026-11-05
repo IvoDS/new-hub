@@ -1,0 +1,44 @@
+# ==============================================================================
+# CADDY CONFIGURATION SNIPPET FOR EXISTING SERVER
+# Add this block to your existing Caddyfile on the server (usually /etc/caddy/Caddyfile)
+# ==============================================================================
+
+# Global options: Ensure the local Admin API is enabled on localhost
+{
+    admin 127.0.0.1:2019
+}
+
+ivandestefani.it, www.ivandestefani.it {
+    # 1. Performance Compression
+    encode zstd gzip
+
+    # 2. Recommended Production Security Headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+
+    # 3. Route Fastify REST API requests
+    handle /api/* {
+        reverse_proxy 127.0.0.1:4000
+    }
+
+    # 4. Route Static Uploads (Curriculum Vitae PDF, Cover Images)
+    handle /uploads/* {
+        reverse_proxy 127.0.0.1:4000
+    }
+
+    # 5. Route Next.js Web Traffic (Slot Blue / Green)
+    # The Hub backend communicates with Caddy's dynamic admin API on 127.0.0.1:2019
+    # to switch traffic from 127.0.0.1:3001 (Blue) to 127.0.0.1:3002 (Green) with ZERO downtime!
+    handle {
+        reverse_proxy 127.0.0.1:3001 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}

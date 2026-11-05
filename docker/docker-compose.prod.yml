@@ -1,0 +1,96 @@
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:11.4
+    container_name: hub-mariadb-prod
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-hub_db}
+      MYSQL_USER: ${DB_USER:-hub_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      # Bound to 127.0.0.1 for security - accessible only from host/containers
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mariadb_prod_data:/var/lib/mysql
+    networks:
+      - hub-prod-net
+
+  # Fastify REST Backend API
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: hub-api-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      DB_DIALECT: mariadb
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-hub_db}
+      DB_USER: ${DB_USER:-hub_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_FALLBACK_SQLITE: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOW_DEV_ADMIN_BYPASS: "false"
+      CADDY_ADMIN_URL: ${CADDY_ADMIN_URL:-http://host.docker.internal:2019}
+      CADDY_BLUE_UPSTREAM: "127.0.0.1:3001"
+      CADDY_GREEN_UPSTREAM: "127.0.0.1:3002"
+      UPLOAD_DIR: "/app/apps/api/uploads"
+    ports:
+      # Bound to 127.0.0.1 so existing host Caddy can proxy to it
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - uploads_prod_data:/app/apps/api/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - hub-prod-net
+    depends_on:
+      - mariadb
+
+  # Web Slot BLUE (Production Slot 1)
+  web-blue:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    container_name: hub-web-blue
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: "https://${DOMAIN:-ivandestefani.it}"
+    ports:
+      # Bound to 127.0.0.1:3001
+      - "127.0.0.1:3001:3000"
+    networks:
+      - hub-prod-net
+
+  # Web Slot GREEN (Production Slot 2 - Standby / New release target)
+  web-green:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    container_name: hub-web-green
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: "https://${DOMAIN:-ivandestefani.it}"
+    ports:
+      # Bound to 127.0.0.1:3002
+      - "127.0.0.1:3002:3000"
+    networks:
+      - hub-prod-net
+
+networks:
+  hub-prod-net:
+    driver: bridge
+
+volumes:
+  mariadb_prod_data:
+  uploads_prod_data:
