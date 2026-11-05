@@ -1,0 +1,65 @@
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:11.4
+    container_name: hub-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: hub_db
+      MYSQL_USER: hub_user
+      MYSQL_PASSWORD: hub_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - hub-net
+
+  # Caddy Reverse Proxy & Traffic Switcher
+  caddy:
+    image: caddy:2-alpine
+    container_name: hub-caddy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "2019:2019"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - hub-net
+    depends_on:
+      - mariadb
+
+  # Blue Upstream Target (Simulation container for Blue slot)
+  app-blue:
+    image: hashicorp/http-echo:0.2.3
+    container_name: hub-app-blue
+    command: ["-listen=:3001", "-text=🔷 [SLOT BLUE ACTIVE] Ivan De Stefani Hub - Production v1.0.0"]
+    ports:
+      - "3001:3001"
+    networks:
+      - hub-net
+
+  # Green Upstream Target (Simulation container for Green slot)
+  app-green:
+    image: hashicorp/http-echo:0.2.3
+    container_name: hub-app-green
+    command: ["-listen=:3002", "-text=🟢 [SLOT GREEN ACTIVE] Ivan De Stefani Hub - Production v1.1.0-RC"]
+    ports:
+      - "3002:3002"
+    networks:
+      - hub-net
+
+networks:
+  hub-net:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+  caddy_data:
+  caddy_config:

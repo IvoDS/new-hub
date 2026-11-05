@@ -1,0 +1,24 @@
+{
+  "name": "ivandestefani-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal Hub & Deployment Manager for ivandestefani.it",
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"@hub/*\" dev",
+    "dev:web": "pnpm --filter @hub/web dev",
+    "dev:api": "pnpm --filter @hub/api dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:test-switch": "bash docker/test-blue-green.sh"
+  },
+  "packageManager": "pnpm@10.0.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sqlite3"]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
