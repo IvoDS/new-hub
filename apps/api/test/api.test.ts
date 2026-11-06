@@ -149,4 +149,51 @@ describe('Hub API Endpoints', () => {
 
     expect(adminCheck.statusCode).toBe(200);
   });
+
+  it('GET /api/content should return 4 competency sections including firmware', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/content',
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.payload);
+    expect(body.success).toBe(true);
+    expect(body.data.competencies).toBeDefined();
+    expect(body.data.competencies.length).toBe(4);
+
+    const firmwareSection = body.data.competencies.find((c: any) => c.id === 'firmware');
+    expect(firmwareSection).toBeDefined();
+    expect(firmwareSection.titleIt).toContain('Firmware');
+    expect(firmwareSection.items.length).toBeGreaterThan(0);
+  });
+
+  it('PUT /api/content should allow admin to update phrases and competence items', async () => {
+    const updateRes = await app.inject({
+      method: 'PUT',
+      url: '/api/content',
+      headers: {
+        'x-dev-admin': 'true',
+        'content-type': 'application/json',
+      },
+      payload: {
+        hero: {
+          statusPillIt: 'Test Status Pill',
+          statusPillEn: 'Test Status Pill EN',
+          helloIt: 'Ciao',
+          helloEn: 'Hello',
+          fullName: 'Ivan De Stefani Test',
+          headlineIt: 'Ingegnere Cloud e Firmware',
+          headlineEn: 'Cloud & Firmware Engineer',
+          bioIt: 'Test bio italiana',
+          bioEn: 'Test english bio',
+        },
+      },
+    });
+
+    expect(updateRes.statusCode).toBe(200);
+    const body = JSON.parse(updateRes.payload);
+    expect(body.success).toBe(true);
+    expect(body.data.hero.fullName).toBe('Ivan De Stefani Test');
+  });
 });

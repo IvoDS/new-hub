@@ -13,11 +13,16 @@ export default function HomePage() {
     queryFn: () => api.getProfile(),
   });
 
+  const { data: content } = useQuery({
+    queryKey: ['site-content'],
+    queryFn: () => api.getContent(),
+  });
+
   return (
     <div className="flex flex-col min-h-screen">
-      <HeroSection profile={profile} />
+      <HeroSection profile={profile} heroText={content?.hero} />
       <ProjectsShowcase />
-      <SkillsSection />
+      <SkillsSection competencies={content?.competencies} />
     </div>
   );
 }

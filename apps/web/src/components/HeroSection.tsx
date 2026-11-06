@@ -3,19 +3,34 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDownRight, Download, Github } from 'lucide-react';
-import type { Profile } from '@hub/shared';
+import type { Profile, SiteHeroText } from '@hub/shared';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Button } from './ui/button';
 
 interface HeroSectionProps {
   profile?: Profile;
+  heroText?: SiteHeroText;
 }
 
-export function HeroSection({ profile }: HeroSectionProps) {
+export function HeroSection({ profile, heroText }: HeroSectionProps) {
   const { locale, t } = useLanguage();
-  const fullName = profile?.fullName || 'Ivan De Stefani';
-  const headline = locale === 'it' ? t.hero.headline : (profile?.headline || t.hero.headline);
-  const bio = locale === 'it' ? t.hero.bio : (profile?.bio || t.hero.bio);
+  const fullName = heroText?.fullName || profile?.fullName || 'Ivan De Stefani';
+
+  const statusPill = locale === 'it' 
+    ? (heroText?.statusPillIt || t.hero.statusPill)
+    : (heroText?.statusPillEn || t.hero.statusPill);
+
+  const hello = locale === 'it' 
+    ? (heroText?.helloIt || t.hero.hello)
+    : (heroText?.helloEn || t.hero.hello);
+
+  const headline = locale === 'it' 
+    ? (heroText?.headlineIt || t.hero.headline)
+    : (heroText?.headlineEn || profile?.headline || t.hero.headline);
+
+  const bio = locale === 'it' 
+    ? (heroText?.bioIt || t.hero.bio)
+    : (heroText?.bioEn || profile?.bio || t.hero.bio);
 
   return (
     <section className="relative pt-20 pb-16 overflow-hidden">
@@ -34,13 +49,13 @@ export function HeroSection({ profile }: HeroSectionProps) {
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-glass">
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
             <span className="text-xs font-mono text-neutral-300">
-              {t.hero.statusPill}
+              {statusPill}
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight">
-            <span className="text-white">{t.hero.hello} </span>
+            <span className="text-white">{hello} </span>
             <span className="text-gradient-sapphire">{fullName}</span>
           </h1>
 

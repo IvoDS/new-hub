@@ -14,6 +14,7 @@ import { projectRoutes } from './routes/projects.js';
 import { profileRoutes } from './routes/profile.js';
 import { deploymentRoutes } from './routes/deployments.js';
 import { uploadRoutes } from './routes/uploads.js';
+import { contentRoutes } from './routes/content.js';
 
 export async function buildApp() {
   const app = fastify({
@@ -60,6 +61,7 @@ export async function buildApp() {
   await app.register(profileRoutes, { prefix: '/api/profile' });
   await app.register(deploymentRoutes, { prefix: '/api/deployments' });
   await app.register(uploadRoutes, { prefix: '/api/uploads' });
+  await app.register(contentRoutes, { prefix: '/api/content' });
 
   return app;
 }

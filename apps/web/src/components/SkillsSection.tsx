@@ -1,33 +1,29 @@
 'use client';
 
 import React from 'react';
-import { Server, Globe, Zap } from 'lucide-react';
+import { Server, Globe, Zap, Cpu } from 'lucide-react';
+import type { CompetencySection } from '@hub/shared';
+import { DEFAULT_SITE_CONTENT } from '@hub/shared';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 
-export function SkillsSection() {
-  const { t } = useLanguage();
+const ICON_MAP = {
+  globe: Globe,
+  server: Server,
+  zap: Zap,
+  cpu: Cpu,
+};
 
-  const domains = [
-    {
-      title: t.skills.domains.frontend.title,
-      icon: Globe,
-      accent: 'sapphire',
-      items: t.skills.domains.frontend.items,
-    },
-    {
-      title: t.skills.domains.backend.title,
-      icon: Server,
-      accent: 'emerald',
-      items: t.skills.domains.backend.items,
-    },
-    {
-      title: t.skills.domains.devops.title,
-      icon: Zap,
-      accent: 'sapphire',
-      items: t.skills.domains.devops.items,
-    },
-  ];
+interface SkillsSectionProps {
+  competencies?: CompetencySection[];
+}
+
+export function SkillsSection({ competencies }: SkillsSectionProps) {
+  const { locale, t } = useLanguage();
+
+  const sectionsToRender = (competencies && competencies.length > 0)
+    ? competencies
+    : DEFAULT_SITE_CONTENT.competencies;
 
   return (
     <section id="skills" className="py-20 relative bg-black/40 border-t border-white/5">
@@ -44,38 +40,48 @@ export function SkillsSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {domains.map((domain) => {
-            const Icon = domain.icon;
-            const isEmerald = domain.accent === 'emerald';
+        {/* 4 Competency Sections: Frontend, Backend, DevOps, Firmware */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {sectionsToRender.map((section) => {
+            const IconComponent = ICON_MAP[section.icon] || Cpu;
+            const isEmerald = section.accent === 'emerald';
+            const title = locale === 'it' ? section.titleIt : section.titleEn;
+
             return (
-              <Card key={domain.title} className="hover:border-white/20">
-                <CardHeader>
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
-                      isEmerald
-                        ? 'bg-emerald/10 text-emerald-light border border-emerald/20 shadow-emerald-glow'
-                        : 'bg-sapphire/10 text-sapphire-light border border-sapphire/20 shadow-sapphire-glow'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <CardTitle className="text-lg">{domain.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2.5">
-                    {domain.items.map((item) => (
-                      <li key={item} className="flex items-center text-xs text-neutral-300">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full mr-2.5 ${
-                            isEmerald ? 'bg-emerald' : 'bg-sapphire-light'
-                          }`}
-                        />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+              <Card key={section.id} className="hover:border-white/20 flex flex-col justify-between">
+                <div>
+                  <CardHeader>
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
+                        isEmerald
+                          ? 'bg-emerald/10 text-emerald-light border border-emerald/20 shadow-emerald-glow'
+                          : 'bg-sapphire/10 text-sapphire-light border border-sapphire/20 shadow-sapphire-glow'
+                      }`}
+                    >
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <CardTitle className="text-base font-semibold text-white">
+                      {title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2.5">
+                      {section.items.map((item) => {
+                        const itemText = locale === 'it' ? item.textIt : item.textEn;
+                        return (
+                          <li key={item.id} className="flex items-start text-xs text-neutral-300 leading-snug">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full mr-2.5 mt-1.5 shrink-0 ${
+                                isEmerald ? 'bg-emerald' : 'bg-sapphire-light'
+                              }`}
+                            />
+                            <span>{itemText}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </CardContent>
+                </div>
               </Card>
             );
           })}

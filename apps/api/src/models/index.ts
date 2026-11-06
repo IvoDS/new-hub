@@ -1,12 +1,15 @@
 import { connectDatabase } from '../config/database.js';
+import { DEFAULT_SITE_CONTENT } from '@hub/shared';
 import { ProjectModel, initProjectModel } from './ProjectModel.js';
 import { ProfileModel, initProfileModel } from './ProfileModel.js';
 import { DeploymentModel, initDeploymentModel } from './DeploymentModel.js';
+import { SiteContentModel, initSiteContentModel } from './SiteContentModel.js';
 
 export function initializeModels() {
   initProjectModel();
   initProfileModel();
   initDeploymentModel();
+  initSiteContentModel();
 }
 
 export async function syncDatabase(force = false) {
@@ -34,7 +37,17 @@ export async function syncDatabase(force = false) {
         { category: 'Frontend', items: ['React', 'Next.js', 'Tailwind CSS', 'Framer Motion', 'TypeScript', 'TanStack Query'] },
         { category: 'Backend & APIs', items: ['Node.js', 'Fastify', 'Express', 'Sequelize', 'MariaDB', 'PostgreSQL', 'REST', 'GraphQL'] },
         { category: 'DevOps & Infrastructure', items: ['Docker', 'Caddy Reverse Proxy', 'GitHub Actions CI/CD', 'Blue/Green Deployments', 'Linux'] },
+        { category: 'Firmware & Embedded', items: ['C/C++', 'FreeRTOS', 'STM32', 'ESP32', 'CAN bus', 'SPI/I2C/UART'] },
       ],
+    });
+  }
+
+  // Seed SiteContent if table is empty
+  const contentCount = await SiteContentModel.count();
+  if (contentCount === 0) {
+    await SiteContentModel.create({
+      hero: DEFAULT_SITE_CONTENT.hero,
+      competencies: DEFAULT_SITE_CONTENT.competencies,
     });
   }
 
@@ -107,4 +120,4 @@ export async function syncDatabase(force = false) {
   return db;
 }
 
-export { ProjectModel, ProfileModel, DeploymentModel };
+export { ProjectModel, ProfileModel, DeploymentModel, SiteContentModel };

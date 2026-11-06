@@ -6,7 +6,9 @@ import type {
   UpdateProfileInput, 
   CaddyRoutingState, 
   DeploymentRecord, 
-  ApiResponse 
+  ApiResponse,
+  SiteContent,
+  UpdateSiteContentInput
 } from '@hub/shared';
 
 const getApiBase = () => {
@@ -113,4 +115,16 @@ export const api = {
       body: formData,
     });
   },
+
+  // Dynamic Site Content & Competencies
+  getContent: () => fetchApi<SiteContent>('/content'),
+  updateContent: (input: UpdateSiteContentInput) =>
+    fetchApi<SiteContent>('/content', {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+  resetContent: () =>
+    fetchApi<SiteContent>('/content/reset', {
+      method: 'POST',
+    }),
 };

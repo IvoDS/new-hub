@@ -79,6 +79,7 @@ const rawTranslations = {
       devMode: 'Dev Admin Mode (Bypass Active)',
       tabs: {
         deployments: 'Blue/Green Controller',
+        content: 'Site Texts & Competencies',
         projects: 'Projects Manager',
         assets: 'Static Assets & CV',
       },
@@ -203,6 +204,7 @@ const rawTranslations = {
       devMode: 'Modalità Dev Admin (Bypass Attivo)',
       tabs: {
         deployments: 'Controller Blue/Green',
+        content: 'Testi & Competenze',
         projects: 'Gestione Progetti',
         assets: 'Asset Statici & CV',
       },
