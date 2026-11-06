@@ -36,6 +36,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_FALLBACK_SQLITE: "false"
       JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-contact@ivandestefani.it}
       ALLOW_DEV_ADMIN_BYPASS: "false"
       CADDY_ADMIN_URL: ${CADDY_ADMIN_URL:-http://host.docker.internal:2019}
       CADDY_BLUE_UPSTREAM: "127.0.0.1:3001"

@@ -66,6 +66,20 @@ export const authPlugin = fp(async function (fastify: FastifyInstance) {
         });
       }
 
+      // Strict email whitelist check
+      const userEmail = (decoded.email || '').toLowerCase();
+      const isAuthorizedEmail = env.ADMIN_EMAILS.includes(userEmail);
+
+      if (!isAuthorizedEmail) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: 'EMAIL_NOT_AUTHORIZED',
+            message: `Access denied. Email '${decoded.email}' is not in the authorized administrator whitelist.`,
+          },
+        });
+      }
+
       request.user = decoded;
       request.adminUser = decoded;
     } catch (err: any) {

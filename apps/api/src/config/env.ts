@@ -20,6 +20,9 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET || 'dev-secret-change-in-production',
   ALLOW_DEV_ADMIN_BYPASS: process.env.ALLOW_DEV_ADMIN_BYPASS === 'true',
   DEV_ADMIN_TOKEN: process.env.DEV_ADMIN_TOKEN || 'dev-secret-token',
+  ADMIN_EMAILS: (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'admin@ivandestefani.it,contact@ivandestefani.it')
+    .split(',')
+    .map((e) => e.trim().toLowerCase()),
 
   CADDY_ADMIN_URL: process.env.CADDY_ADMIN_URL || 'http://127.0.0.1:2019',
   CADDY_BLUE_UPSTREAM: process.env.CADDY_BLUE_UPSTREAM || '127.0.0.1:3001',

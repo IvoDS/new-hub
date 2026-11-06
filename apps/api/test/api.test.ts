@@ -106,4 +106,47 @@ describe('Hub API Endpoints', () => {
     expect(body.success).toBe(true);
     expect(body.data.state.activeSlot).toBe('blue');
   });
+
+  it('POST /api/auth/sso-exchange should reject unauthorized email with 403', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/sso-exchange',
+      payload: {
+        email: 'unauthorized-stranger@gmail.com',
+        name: 'Random User',
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
+    const body = JSON.parse(res.payload);
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe('EMAIL_NOT_AUTHORIZED');
+  });
+
+  it('POST /api/auth/sso-exchange should accept authorized admin email and issue valid JWT', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/auth/sso-exchange',
+      payload: {
+        email: 'contact@ivandestefani.it',
+        name: 'Ivan De Stefani',
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.payload);
+    expect(body.success).toBe(true);
+    expect(body.data.token).toBeDefined();
+
+    // Verify token grants access to protected admin route
+    const adminCheck = await app.inject({
+      method: 'GET',
+      url: '/api/projects/admin/all',
+      headers: {
+        Authorization: `Bearer ${body.data.token}`,
+      },
+    });
+
+    expect(adminCheck.statusCode).toBe(200);
+  });
 });
