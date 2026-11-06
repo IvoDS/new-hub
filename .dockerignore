@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+build
+.git
+.gitignore
+*.log
+*.sqlite
+*.sqlite3
+data
+uploads
+.DS_Store
