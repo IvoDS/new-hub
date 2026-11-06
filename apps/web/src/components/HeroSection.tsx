@@ -12,10 +12,10 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ profile }: HeroSectionProps) {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const fullName = profile?.fullName || 'Ivan De Stefani';
-  const headline = profile?.headline || t.hero.headline;
-  const bio = profile?.bio || t.hero.bio;
+  const headline = locale === 'it' ? t.hero.headline : (profile?.headline || t.hero.headline);
+  const bio = locale === 'it' ? t.hero.bio : (profile?.bio || t.hero.bio);
 
   return (
     <section className="relative pt-20 pb-16 overflow-hidden">

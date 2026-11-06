@@ -17,15 +17,7 @@ import { uploadRoutes } from './routes/uploads.js';
 
 export async function buildApp() {
   const app = fastify({
-    logger: env.NODE_ENV === 'development' ? {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    } : true,
+    logger: true,
   });
 
   // Enable CORS

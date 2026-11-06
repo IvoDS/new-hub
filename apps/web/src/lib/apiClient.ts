@@ -9,10 +9,15 @@ import type {
   ApiResponse 
 } from '@hub/shared';
 
-const API_BASE = '/api';
+const getApiBase = () => {
+  if (typeof window === 'undefined') {
+    return process.env.INTERNAL_API_URL || 'http://127.0.0.1:4000/api';
+  }
+  return '/api';
+};
 
 /**
- * Universal fetch wrapper adding JSON parsing and dev-bypass headers
+ * Universal fetch wrapper adding JSON parsing, SSR safety and dev-bypass headers
  */
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers || {});
@@ -24,24 +29,38 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
   // Include dev-admin bypass header for seamless local testing
   headers.set('x-dev-admin', 'true');
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const base = getApiBase();
+  const url = `${base}${endpoint}`;
 
-  if (!res.ok) {
-    let errorDetail = 'API Request Failed';
-    try {
-      const errJson = await res.json();
-      errorDetail = errJson.error?.message || errJson.message || res.statusText;
-    } catch {
-      errorDetail = `HTTP ${res.status}: ${res.statusText}`;
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      // Short timeout on server to never block page rendering
+      signal: typeof window === 'undefined' ? AbortSignal.timeout(2000) : options.signal,
+    });
+
+    if (!res.ok) {
+      let errorDetail = 'API Request Failed';
+      try {
+        const errJson = await res.json();
+        errorDetail = errJson.error?.message || errJson.message || res.statusText;
+      } catch {
+        errorDetail = `HTTP ${res.status}: ${res.statusText}`;
+      }
+      throw new Error(errorDetail);
     }
-    throw new Error(errorDetail);
-  }
 
-  const json = (await res.json()) as ApiResponse<T>;
-  return json.data;
+    const json = (await res.json()) as ApiResponse<T>;
+    return json.data;
+  } catch (err: any) {
+    // During server-side rendering (SSR), do not crash the page if API is booting up
+    if (typeof window === 'undefined') {
+      console.warn(`[SSR API] Graceful fallback for ${endpoint}:`, err.message);
+      return null as any;
+    }
+    throw err;
+  }
 }
 
 export const api = {
