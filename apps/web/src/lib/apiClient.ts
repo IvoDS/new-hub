@@ -8,8 +8,26 @@ import type {
   DeploymentRecord, 
   ApiResponse,
   SiteContent,
-  UpdateSiteContentInput
+  UpdateSiteContentInput,
+  AuthUser
 } from '@hub/shared';
+
+export const getStoredToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('hub_admin_token');
+  }
+  return null;
+};
+
+export const setStoredToken = (token: string | null) => {
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('hub_admin_token', token);
+    } else {
+      localStorage.removeItem('hub_admin_token');
+    }
+  }
+};
 
 const getApiBase = () => {
   if (typeof window === 'undefined') {
@@ -19,7 +37,7 @@ const getApiBase = () => {
 };
 
 /**
- * Universal fetch wrapper adding JSON parsing, SSR safety and dev-bypass headers
+ * Universal fetch wrapper adding JSON parsing, SSR safety and auth headers
  */
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers || {});
@@ -28,8 +46,13 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     headers.set('Content-Type', 'application/json');
   }
 
-  // Include dev-admin bypass header for seamless local testing
-  headers.set('x-dev-admin', 'true');
+  // Attach real JWT token if stored, otherwise allow local dev bypass
+  const token = getStoredToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else if (process.env.NODE_ENV !== 'production') {
+    headers.set('x-dev-admin', 'true');
+  }
 
   const base = getApiBase();
   const url = `${base}${endpoint}`;
@@ -127,4 +150,20 @@ export const api = {
     fetchApi<SiteContent>('/content/reset', {
       method: 'POST',
     }),
+
+  // Authentication & Session
+  login: async (email: string, name?: string): Promise<{ token: string; user: AuthUser }> => {
+    const data = await fetchApi<{ token: string; user: AuthUser }>('/auth/sso-exchange', {
+      method: 'POST',
+      body: JSON.stringify({ email, name }),
+    });
+    if (data?.token) {
+      setStoredToken(data.token);
+    }
+    return data;
+  },
+  getAuthUser: () => fetchApi<AuthUser>('/auth/me'),
+  logout: () => {
+    setStoredToken(null);
+  },
 };
