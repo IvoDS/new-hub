@@ -64,6 +64,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      HOSTNAME: "0.0.0.0"
       NEXT_PUBLIC_API_URL: "https://${DOMAIN:-ivandestefani.it}"
     ports:
       # Bound to 127.0.0.1:3001
@@ -81,6 +82,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      HOSTNAME: "0.0.0.0"
       NEXT_PUBLIC_API_URL: "https://${DOMAIN:-ivandestefani.it}"
     ports:
       # Bound to 127.0.0.1:3002
