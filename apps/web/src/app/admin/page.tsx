@@ -102,6 +102,11 @@ export default function AdminPage() {
     refetchInterval: 5000,
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => api.getProfile(),
+  });
+
   const routing = deploymentData?.routing;
   const history = deploymentData?.history || [];
   const activeSlot = routing?.activeSlot || 'blue';
@@ -273,10 +278,15 @@ export default function AdminPage() {
     try {
       setUploadStatus('Uploading asset to server...');
       const res = await api.uploadFile(file);
-      setUploadStatus(`File uploaded successfully! URL: ${res.url}`);
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        await api.updateProfile({ cvPdfUrl: res.url });
+        setUploadStatus(`CV aggiornato con successo! Nuovo URL: ${res.url}`);
+      } else {
+        setUploadStatus(`File caricato con successo! URL: ${res.url}`);
+      }
       queryClient.invalidateQueries({ queryKey: ['profile'] });
     } catch (err: any) {
-      setUploadStatus(`Upload failed: ${err.message}`);
+      setUploadStatus(`Upload fallito: ${err.message}`);
     }
   };
 
@@ -992,6 +1002,24 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Active CV Status */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 gap-3">
+              <div className="flex items-center space-x-3">
+                <FileText className="w-5 h-5 text-emerald-light shrink-0" />
+                <div>
+                  <p className="text-xs text-neutral-400">Curriculum Vitae Attivo / Active CV</p>
+                  <p className="text-sm font-mono text-white break-all">{profile?.cvPdfUrl || '/uploads/ivan-de-stefani-cv.pdf'}</p>
+                </div>
+              </div>
+              {profile?.cvPdfUrl && (
+                <a href={profile.cvPdfUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="emerald" size="sm" className="shrink-0">
+                    Visualizza CV / View CV
+                  </Button>
+                </a>
+              )}
+            </div>
+
             <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center space-y-4 hover:border-emerald/40 transition-colors">
               <UploadCloud className="w-10 h-10 mx-auto text-emerald-light" />
               <div>

@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 
 import { env } from './config/env.js';
+import { ensureInitialUploads } from './config/initUploads.js';
 import { syncDatabase } from './models/index.js';
 import { authPlugin } from './plugins/auth.js';
 import { healthRoutes } from './routes/health.js';
@@ -41,10 +42,8 @@ export async function buildApp() {
     },
   });
 
-  // Ensure uploads folder exists
-  if (!fs.existsSync(env.UPLOAD_DIR)) {
-    fs.mkdirSync(env.UPLOAD_DIR, { recursive: true });
-  }
+  // Ensure uploads folder and initial placeholder CV exist
+  ensureInitialUploads();
 
   // Serve uploads statically
   await app.register(fastifyStatic, {

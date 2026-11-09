@@ -28,5 +28,9 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 data/
-uploads/
-!uploads/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/ivan-de-stefani-cv.pdf
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+!apps/api/uploads/ivan-de-stefani-cv.pdf
