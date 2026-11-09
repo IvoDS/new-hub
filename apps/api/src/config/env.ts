@@ -29,4 +29,6 @@ export const env = {
   CADDY_GREEN_UPSTREAM: process.env.CADDY_GREEN_UPSTREAM || '127.0.0.1:3002',
 
   UPLOAD_DIR: path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads'),
+  REPO_DIR: process.env.REPO_DIR || (process.platform === 'darwin' ? path.resolve(process.cwd(), '../..') : '/opt/new-hub'),
+  GITHUB_REPO: process.env.GITHUB_REPO || 'https://github.com/IvoDS/new-hub.git',
 };

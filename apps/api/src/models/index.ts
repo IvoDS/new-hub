@@ -29,7 +29,7 @@ export async function syncDatabase(force = false) {
       location: 'Milan, Italy',
       email: 'contact@ivandestefani.it',
       socialLinks: [
-        { platform: 'github', url: 'https://github.com/ivandestefani', label: 'GitHub' },
+        { platform: 'github', url: 'https://github.com/IvoDS', label: 'GitHub' },
         { platform: 'linkedin', url: 'https://linkedin.com/in/ivandestefani', label: 'LinkedIn' },
         { platform: 'website', url: 'https://ivandestefani.it', label: 'Portfolio' },
       ],
@@ -40,6 +40,22 @@ export async function syncDatabase(force = false) {
         { category: 'Firmware & Embedded', items: ['C/C++', 'FreeRTOS', 'STM32', 'ESP32', 'CAN bus', 'SPI/I2C/UART'] },
       ],
     });
+  } else {
+    // Migrate existing profile GitHub URL to IvoDS if needed
+    const existingProfile = await ProfileModel.findOne();
+    if (existingProfile && existingProfile.socialLinks) {
+      let changed = false;
+      const updatedLinks = existingProfile.socialLinks.map((link) => {
+        if (link.platform === 'github' && link.url.includes('github.com/ivandestefani')) {
+          changed = true;
+          return { ...link, url: 'https://github.com/IvoDS' };
+        }
+        return link;
+      });
+      if (changed) {
+        await existingProfile.update({ socialLinks: updatedLinks });
+      }
+    }
   }
 
   // Seed SiteContent if table is empty
@@ -66,7 +82,7 @@ export async function syncDatabase(force = false) {
         order: 1,
         published: true,
         coverImageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=80',
-        githubUrl: 'https://github.com/ivandestefani/new-hub',
+        githubUrl: 'https://github.com/IvoDS/new-hub',
         demoUrl: 'https://ivandestefani.it',
       },
       {
@@ -80,7 +96,7 @@ export async function syncDatabase(force = false) {
         order: 2,
         published: true,
         coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
-        githubUrl: 'https://github.com/ivandestefani',
+        githubUrl: 'https://github.com/IvoDS',
       },
       {
         title: 'Cloud Edge Reverse Proxy Controller',
@@ -93,9 +109,18 @@ export async function syncDatabase(force = false) {
         order: 3,
         published: true,
         coverImageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&auto=format&fit=crop&q=80',
-        githubUrl: 'https://github.com/ivandestefani',
+        githubUrl: 'https://github.com/IvoDS',
       },
     ]);
+  } else {
+    // Migrate existing projects GitHub URLs to IvoDS
+    const allProjects = await ProjectModel.findAll();
+    for (const p of allProjects) {
+      if (p.githubUrl && p.githubUrl.includes('github.com/ivandestefani')) {
+        const updated = p.githubUrl.replace('github.com/ivandestefani', 'github.com/IvoDS');
+        await p.update({ githubUrl: updated });
+      }
+    }
   }
 
   // Seed initial Deployment record
@@ -103,7 +128,7 @@ export async function syncDatabase(force = false) {
   if (deploymentCount === 0) {
     await DeploymentModel.create({
       projectName: 'Hub Web App',
-      repository: 'ivandestefani/new-hub',
+      repository: 'IvoDS/new-hub',
       branch: 'main',
       commitHash: 'a1b2c3d',
       commitMessage: 'feat: initialize personal hub and deployment manager',

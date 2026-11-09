@@ -24,6 +24,7 @@ services:
       dockerfile: docker/Dockerfile.api
     container_name: hub-api-prod
     restart: always
+    user: root
     environment:
       NODE_ENV: production
       PORT: 4000
@@ -42,11 +43,14 @@ services:
       CADDY_BLUE_UPSTREAM: "127.0.0.1:3001"
       CADDY_GREEN_UPSTREAM: "127.0.0.1:3002"
       UPLOAD_DIR: "/app/apps/api/uploads"
+      REPO_DIR: ${REPO_DIR:-/opt/new-hub}
     ports:
       # Bound to 127.0.0.1 so existing host Caddy can proxy to it
       - "127.0.0.1:4000:4000"
     volumes:
       - uploads_prod_data:/app/apps/api/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${REPO_DIR:-/opt/new-hub}:${REPO_DIR:-/opt/new-hub}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

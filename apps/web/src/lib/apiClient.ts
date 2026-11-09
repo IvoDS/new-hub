@@ -9,7 +9,9 @@ import type {
   ApiResponse,
   SiteContent,
   UpdateSiteContentInput,
-  AuthUser
+  AuthUser,
+  TriggerDeployRequest,
+  DeploymentJobStatus
 } from '@hub/shared';
 
 export const getStoredToken = (): string | null => {
@@ -118,6 +120,12 @@ export const api = {
 
   // Deployments & Caddy Traffic Switcher
   getDeployments: () => fetchApi<{ routing: CaddyRoutingState; history: DeploymentRecord[] }>('/deployments'),
+  getDeploymentLiveStatus: () => fetchApi<DeploymentJobStatus>('/deployments/live-status'),
+  triggerDeployment: (input?: TriggerDeployRequest) =>
+    fetchApi<{ jobId: string; targetSlot: 'blue' | 'green'; autoSwitch: boolean; message?: string }>('/deployments/trigger-build', {
+      method: 'POST',
+      body: JSON.stringify(input || {}),
+    }),
   switchSlot: (targetSlot: 'blue' | 'green', notes?: string) =>
     fetchApi<{ success: boolean; state: CaddyRoutingState; message: string }>('/deployments/switch', {
       method: 'POST',

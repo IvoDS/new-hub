@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Activity, 
@@ -23,7 +23,13 @@ import {
   LogOut,
   UserCheck,
   Mail,
-  AlertCircle
+  AlertCircle,
+  Rocket,
+  GitBranch,
+  Terminal,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw
 } from 'lucide-react';
 import { api } from '@/lib/apiClient';
 import type { 
@@ -127,6 +133,47 @@ export default function AdminPage() {
       setActionMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ['deployments'] });
       queryClient.invalidateQueries({ queryKey: ['deployments-status'] });
+    },
+  });
+
+  // --- Single-Button Deploy State & Pipeline Poller ---
+  const [showTerminal, setShowTerminal] = useState(false);
+  const [deployError, setDeployError] = useState<string | null>(null);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+
+  const { data: deployLiveStatus } = useQuery({
+    queryKey: ['deployments-live-status'],
+    queryFn: () => api.getDeploymentLiveStatus(),
+    refetchInterval: (query) => (query.state.data?.isRunning ? 1500 : 5000),
+  });
+
+  // Auto-scroll terminal when new logs arrive
+  useEffect(() => {
+    if (deployLiveStatus?.logs && deployLiveStatus.logs.length > 0 && showTerminal) {
+      terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [deployLiveStatus?.logs, showTerminal]);
+
+  // Open terminal automatically when a job starts, and refresh deployment history on complete
+  useEffect(() => {
+    if (deployLiveStatus?.isRunning) {
+      setShowTerminal(true);
+    }
+    if (deployLiveStatus?.stage === 'completed') {
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
+    }
+  }, [deployLiveStatus?.isRunning, deployLiveStatus?.stage, queryClient]);
+
+  const triggerDeployMutation = useMutation({
+    mutationFn: (autoSwitch: boolean) => api.triggerDeployment({ autoSwitch }),
+    onSuccess: (data) => {
+      setActionMessage(data.message || 'Pipeline di rilascio avviata');
+      setShowTerminal(true);
+      setDeployError(null);
+      queryClient.invalidateQueries({ queryKey: ['deployments-live-status'] });
+    },
+    onError: (err: any) => {
+      setDeployError(err.message || "Errore durante l'avvio del deploy");
     },
   });
 
@@ -731,6 +778,146 @@ export default function AdminPage() {
       {/* TAB: BLUE / GREEN DEPLOYMENT CONTROLLER */}
       {activeTab === 'deployments' && (
         <div className="space-y-8">
+          {/* SINGLE-BUTTON DEPLOY CARD */}
+          <Card className="border border-emerald/40 bg-emerald/5 shadow-emerald-glow relative overflow-hidden">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 rounded-xl bg-emerald/20 border border-emerald/30 text-emerald-light">
+                    <Rocket className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl text-white">
+                      {t.admin.singleDeploy.title}
+                    </CardTitle>
+                    <CardDescription className="text-xs text-neutral-300 mt-0.5">
+                      {t.admin.singleDeploy.desc}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-mono text-neutral-400">Target:</span>
+                  <Badge variant={standbySlot === 'blue' ? 'sapphire' : 'emerald'} className="uppercase font-mono text-xs">
+                    Slot {standbySlot.toUpperCase()} (Standby)
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 items-center">
+                <Button
+                  variant="emerald"
+                  size="default"
+                  disabled={deployLiveStatus?.isRunning || triggerDeployMutation.isPending}
+                  onClick={() => triggerDeployMutation.mutate(true)}
+                  className="font-medium shadow-emerald-glow"
+                >
+                  {deployLiveStatus?.isRunning && deployLiveStatus.autoSwitch ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Rocket className="w-4 h-4 mr-2" />
+                  )}
+                  {t.admin.singleDeploy.deployAndSwitchBtn}
+                </Button>
+
+                <Button
+                  variant="glass"
+                  size="default"
+                  disabled={deployLiveStatus?.isRunning || triggerDeployMutation.isPending}
+                  onClick={() => triggerDeployMutation.mutate(false)}
+                  className="font-medium hover:border-white/30"
+                >
+                  {deployLiveStatus?.isRunning && !deployLiveStatus.autoSwitch ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <GitBranch className="w-4 h-4 mr-2" />
+                  )}
+                  {t.admin.singleDeploy.deployBtn}
+                </Button>
+
+                {deployLiveStatus && deployLiveStatus.logs.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTerminal(!showTerminal)}
+                    className="text-xs text-neutral-400 hover:text-white ml-auto"
+                  >
+                    <Terminal className="w-3.5 h-3.5 mr-1.5" />
+                    {showTerminal ? t.admin.singleDeploy.hideLogs : t.admin.singleDeploy.showLogs}
+                    {showTerminal ? <ChevronUp className="w-3.5 h-3.5 ml-1" /> : <ChevronDown className="w-3.5 h-3.5 ml-1" />}
+                  </Button>
+                )}
+              </div>
+
+              {/* Error Alert */}
+              {deployError && (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{deployError}</span>
+                </div>
+              )}
+
+              {/* Live Status Badge & Pipeline Indicator */}
+              {deployLiveStatus && deployLiveStatus.stage !== 'idle' && (
+                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+                  <div className="flex items-center space-x-2.5">
+                    {deployLiveStatus.isRunning ? (
+                      <span className="w-2.5 h-2.5 rounded-full bg-sapphire shadow-sapphire-glow animate-ping" />
+                    ) : deployLiveStatus.stage === 'completed' ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-light shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    )}
+                    <span className="text-white font-semibold">
+                      {deployLiveStatus.stage === 'queued' && t.admin.singleDeploy.stageQueued}
+                      {deployLiveStatus.stage === 'pulling' && t.admin.singleDeploy.stagePulling}
+                      {deployLiveStatus.stage === 'building' && t.admin.singleDeploy.stageBuilding}
+                      {deployLiveStatus.stage === 'healthchecking' && t.admin.singleDeploy.stageHealthchecking}
+                      {deployLiveStatus.stage === 'switching' && t.admin.singleDeploy.stageSwitching}
+                      {deployLiveStatus.stage === 'completed' && t.admin.singleDeploy.stageCompleted}
+                      {deployLiveStatus.stage === 'failed' && t.admin.singleDeploy.stageFailed}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2 text-neutral-400 text-[11px]">
+                    {deployLiveStatus.startedAt && (
+                      <span>Avviato: {new Date(deployLiveStatus.startedAt).toLocaleTimeString()}</span>
+                    )}
+                    {deployLiveStatus.targetSlot && (
+                      <Badge variant={deployLiveStatus.targetSlot === 'blue' ? 'sapphire' : 'emerald'} className="text-[10px]">
+                        Slot {deployLiveStatus.targetSlot.toUpperCase()}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Collapsible Terminal Output */}
+              {showTerminal && deployLiveStatus && deployLiveStatus.logs.length > 0 && (
+                <div className="rounded-xl bg-black/85 border border-white/15 overflow-hidden font-mono shadow-inner">
+                  <div className="px-3 py-2 bg-white/5 border-b border-white/10 flex items-center justify-between text-[11px] text-neutral-400">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald/80 inline-block" />
+                      <span className="ml-2 text-neutral-300 font-semibold">{t.admin.singleDeploy.logsTitle}</span>
+                    </div>
+                    <span>{deployLiveStatus.logs.length} linee</span>
+                  </div>
+                  <div className="p-3 text-[11px] leading-relaxed max-h-64 overflow-y-auto space-y-1 text-emerald-light/90">
+                    {deployLiveStatus.logs.map((log, idx) => (
+                      <div key={idx} className="break-all whitespace-pre-wrap">
+                        {log}
+                      </div>
+                    ))}
+                    <div ref={terminalEndRef} />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Blue Slot Card */}
             <Card className={`relative border-2 ${activeSlot === 'blue' ? 'border-sapphire/80 shadow-sapphire-glow bg-sapphire/10' : 'border-white/10 opacity-75'}`}>

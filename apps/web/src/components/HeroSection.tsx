@@ -85,7 +85,11 @@ export function HeroSection({ profile, heroText }: HeroSectionProps) {
               </a>
             ) : null}
 
-            <a href="https://github.com/ivandestefani" target="_blank" rel="noopener noreferrer">
+            <a 
+              href={profile?.socialLinks?.find((s: any) => s.platform === 'github')?.url || 'https://github.com/IvoDS'} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
               <Button variant="outline" size="lg" className="border-white/15">
                 <Github className="w-4 h-4 mr-2" />
                 <span>{t.hero.github}</span>

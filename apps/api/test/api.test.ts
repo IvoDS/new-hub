@@ -196,4 +196,49 @@ describe('Hub API Endpoints', () => {
     expect(body.success).toBe(true);
     expect(body.data.hero.fullName).toBe('Ivan De Stefani Test');
   });
+
+  it('GET /api/deployments/live-status should return runner state', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/deployments/live-status',
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.payload);
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty('stage');
+    expect(body.data).toHaveProperty('logs');
+    expect(Array.isArray(body.data.logs)).toBe(true);
+  });
+
+  it('POST /api/deployments/trigger-build should trigger build on standby slot', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/deployments/trigger-build',
+      headers: {
+        'x-dev-admin': 'true',
+        'content-type': 'application/json',
+      },
+      payload: {
+        autoSwitch: true,
+      },
+    });
+
+    expect(res.statusCode).toBe(202);
+    const body = JSON.parse(res.payload);
+    expect(body.success).toBe(true);
+    expect(body.data.jobId).toBeDefined();
+    expect(body.data.autoSwitch).toBe(true);
+
+    // Wait slightly for simulated test pipeline to complete
+    await new Promise((r) => setTimeout(r, 250));
+
+    const statusRes = await app.inject({
+      method: 'GET',
+      url: '/api/deployments/live-status',
+    });
+    const statusBody = JSON.parse(statusRes.payload);
+    expect(statusBody.data.stage).toBe('completed');
+    expect(statusBody.data.logs.length).toBeGreaterThan(0);
+  });
 });

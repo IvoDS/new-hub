@@ -135,17 +135,23 @@ Dovresti vedere:
 
 ---
 
-## 🔄 Step 3: Gestione Rilasci Blue/Green e Rollback
+## 🔄 Step 3: Gestione Rilasci Blue/Green, Single-Button Deploy e Rollback
 
 Una volta che il sito è online su `https://ivandestefani.it`:
 
-1. **Accesso all'Admin Hub**: Vai su `https://ivandestefani.it/admin`.
-2. **Visione Stato Real-Time**: L'indicatore mostrerà quale slot è attivo (`BLUE` o `GREEN`).
-3. **Nuovi Rilasci (GitHub Actions)**:
-   - Ogni volta che fai `git push` su `main`, la pipeline compila e avvia la nuova versione nello slot di **Standby** (es. `Green` se `Blue` è attivo).
-   - Il nuovo rilascio entra in attesa di approvazione manuale (Gating).
-4. **Switch Istantaneo a Zero Downtime**:
-   - Dalla dashboard clicca su **"Promuovi lo Slot di Standby (GREEN) ad Attivo"**.
-   - Il backend comunica con l'API Caddy (`http://127.0.0.1:2019`) e scambia il traffico in meno di un millisecondo senza perdere alcuna connessione attiva!
+1. **Accesso all'Admin Hub**: Vai su `https://ivandestefani.it/admin` (Tab *Controller Blue/Green*).
+2. **Visione Stato Real-Time**: I badge mostrano in tempo reale quale slot è attivo (`BLUE` o `GREEN`) e quale è in `STANDBY`.
+3. **🚀 Rilascio con Singolo Pulsante dall'Admin (Single-Button Deploy)**:
+   - Dalla scheda **Controller Blue/Green**, trovi il pannello di deploy diretto collegato al repository GitHub:
+     - **"Rilascio 1-Click & Switch Immediato"**: Scarica automaticamente gli ultimi commit da `origin/main`, compila Next.js per lo slot di standby, esegue il test di salute e commuta il traffico in Caddy a zero downtime in una singola operazione!
+     - **"Compila & Rilascia su Standby"**: Esegue il pull e la compilazione dello slot di standby mantenendo il traffico sullo slot attivo attuale, per permetterti di collaudarlo prima dello switch.
+   - **Console Terminale Live**: Durante il rilascio, la console integrata mostra in streaming i comandi eseguiti (`git pull`, `docker compose build`, healthcheck su porta 3001/3002).
+4. **Switch Istantaneo Manuale**:
+   - Se hai rilasciato solo su standby, clicca su **"Promuovi lo Slot di Standby ad Attivo"** per scambiare il traffico tramite l'API REST di Caddy in meno di un millisecondo.
 5. **Rollback d'Emergenza**:
-   - Se noti anomalie, clicca su **"Innesca Rollback Istantaneo"**: Caddy ripristinerà immediatamente il traffico sullo slot precedente.
+   - In caso di imprevisti, clicca su **"Innesca Rollback Istantaneo"**: Caddy ripristinerà immediatamente il traffico sullo slot precedente.
+6. **Alternativa da Terminale (CLI)**:
+   - Puoi anche lanciare il deploy direttamente via SSH tramite lo script:
+     ```bash
+     ./scripts/deploy-standby.sh [blue|green] [auto_switch: true|false]
+     ```

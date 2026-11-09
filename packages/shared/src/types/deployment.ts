@@ -41,3 +41,30 @@ export interface SwitchSlotRequest {
 export interface RollbackRequest {
   reason?: string;
 }
+
+export type DeploymentStage =
+  | 'idle'
+  | 'queued'
+  | 'pulling'
+  | 'building'
+  | 'healthchecking'
+  | 'switching'
+  | 'completed'
+  | 'failed';
+
+export interface TriggerDeployRequest {
+  targetSlot?: DeploymentSlot;
+  autoSwitch?: boolean;
+}
+
+export interface DeploymentJobStatus {
+  activeJobId: string | null;
+  isRunning: boolean;
+  stage: DeploymentStage;
+  targetSlot: DeploymentSlot | null;
+  autoSwitch: boolean;
+  startedAt: string | null;
+  finishedAt: string | null;
+  error: string | null;
+  logs: string[];
+}
