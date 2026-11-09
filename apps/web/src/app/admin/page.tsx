@@ -139,7 +139,7 @@ export default function AdminPage() {
   // --- Single-Button Deploy State & Pipeline Poller ---
   const [showTerminal, setShowTerminal] = useState(false);
   const [deployError, setDeployError] = useState<string | null>(null);
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const terminalContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: deployLiveStatus } = useQuery({
     queryKey: ['deployments-live-status'],
@@ -147,10 +147,10 @@ export default function AdminPage() {
     refetchInterval: (query) => (query.state.data?.isRunning ? 1500 : 5000),
   });
 
-  // Auto-scroll terminal when new logs arrive
+  // Auto-scroll ONLY the terminal internal scroll container when new logs arrive, never scrolling the page
   useEffect(() => {
-    if (deployLiveStatus?.logs && deployLiveStatus.logs.length > 0 && showTerminal) {
-      terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (deployLiveStatus?.logs && deployLiveStatus.logs.length > 0 && showTerminal && terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
     }
   }, [deployLiveStatus?.logs, showTerminal]);
 
@@ -907,13 +907,15 @@ export default function AdminPage() {
                     </div>
                     <span>{deployLiveStatus.logs.length} linee</span>
                   </div>
-                  <div className="p-3 text-[11px] leading-relaxed max-h-64 overflow-y-auto space-y-1 text-emerald-light/90">
+                  <div 
+                    ref={terminalContainerRef}
+                    className="p-3 text-[11px] leading-relaxed max-h-64 overflow-y-auto space-y-1 text-emerald-light/90"
+                  >
                     {deployLiveStatus.logs.map((log, idx) => (
                       <div key={idx} className="break-all whitespace-pre-wrap">
                         {log}
                       </div>
                     ))}
-                    <div ref={terminalEndRef} />
                   </div>
                 </div>
               )}
