@@ -261,11 +261,20 @@ export default function AdminPage() {
     },
   });
 
+  const [projectMessage, setProjectMessage] = useState<string | null>(null);
+  const [projectError, setProjectError] = useState<string | null>(null);
+
   const deleteProjectMutation = useMutation({
     mutationFn: (id: string) => api.deleteProject(id),
     onSuccess: () => {
+      setProjectMessage('Progetto eliminato con successo!');
+      setProjectError(null);
       queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+    onError: (err: any) => {
+      setProjectError(`Eliminazione non riuscita: ${err.message || 'Accesso non autorizzato o errore di rete'}`);
+      setProjectMessage(null);
     },
   });
 
@@ -964,6 +973,21 @@ export default function AdminPage() {
             </Card>
           )}
 
+          {/* Status alerts */}
+          {projectMessage && (
+            <div className="p-3 rounded-lg bg-emerald/10 border border-emerald/20 text-emerald-light text-xs flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span>{projectMessage}</span>
+            </div>
+          )}
+
+          {projectError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{projectError}</span>
+            </div>
+          )}
+
           {/* Projects Table */}
           <Card>
             <CardContent className="p-0">
@@ -979,9 +1003,19 @@ export default function AdminPage() {
                         variant="ghost"
                         size="icon"
                         className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        onClick={() => deleteProjectMutation.mutate(project.id)}
+                        title="Elimina Progetto"
+                        disabled={deleteProjectMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(`Sei sicuro di voler eliminare il progetto "${project.title}"?`)) {
+                            deleteProjectMutation.mutate(project.id);
+                          }
+                        }}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {deleteProjectMutation.isPending && deleteProjectMutation.variables === project.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-red-400" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
