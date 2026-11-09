@@ -421,13 +421,13 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10">
       {/* Header & Dev Admin Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-white/10 gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald shadow-emerald-glow animate-pulse" />
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald shadow-emerald-glow animate-pulse shrink-0" />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               {t.admin.title}
             </h1>
           </div>
@@ -436,7 +436,7 @@ export default function AdminPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {currentUser.provider === 'dev' ? (
             <Badge variant="emerald" className="px-3 py-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
@@ -511,19 +511,20 @@ export default function AdminPage() {
       {activeTab === 'content' && (
         <div className="space-y-8">
           {/* Action Bar */}
-          <div className="flex items-center justify-between p-4 rounded-2xl glass-panel border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl glass-panel border-white/10">
             <div>
-              <h2 className="text-lg font-bold text-white">Gestione Testi & Competenze del Sito</h2>
-              <p className="text-xs text-neutral-400">
+              <h2 className="text-base sm:text-lg font-bold text-white">Gestione Testi & Competenze del Sito</h2>
+              <p className="text-xs text-neutral-400 mt-0.5">
                 Modifica le frasi, aggiungi/rimuovi elementi dalle liste e personalizza la sezione Firmware.
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => resetContentMutation.mutate()}
                 disabled={resetContentMutation.isPending}
+                className="w-full sm:w-auto h-auto min-h-[38px] py-2 px-3 text-xs text-center justify-center whitespace-normal leading-snug"
               >
                 Ripristina Predefiniti
               </Button>
@@ -532,11 +533,12 @@ export default function AdminPage() {
                 size="sm"
                 onClick={() => contentForm && updateContentMutation.mutate(contentForm)}
                 disabled={updateContentMutation.isPending || !contentForm}
+                className="w-full sm:w-auto h-auto min-h-[38px] py-2 px-4 text-xs text-center justify-center whitespace-normal leading-snug shadow-emerald-glow"
               >
                 {updateContentMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
                 ) : (
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-4 h-4 mr-2 shrink-0" />
                 )}
                 Salva Tutte le Modifiche
               </Button>
@@ -723,9 +725,9 @@ export default function AdminPage() {
                                 <span className="text-[10px] font-mono text-neutral-500 w-4 text-center">
                                   {idx + 1}
                                 </span>
-                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                   <input
-                                    className="glass-input w-full px-2 py-1 rounded text-[11px]"
+                                    className="glass-input w-full min-w-0 px-2 py-1 rounded text-[11px]"
                                     placeholder="Testo IT..."
                                     value={item.textIt}
                                     onChange={(e) =>
@@ -733,7 +735,7 @@ export default function AdminPage() {
                                     }
                                   />
                                   <input
-                                    className="glass-input w-full px-2 py-1 rounded text-[11px]"
+                                    className="glass-input w-full min-w-0 px-2 py-1 rounded text-[11px]"
                                     placeholder="Testo EN..."
                                     value={item.textEn}
                                     onChange={(e) =>
@@ -805,20 +807,20 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center">
                 <Button
                   variant="emerald"
                   size="default"
                   disabled={deployLiveStatus?.isRunning || triggerDeployMutation.isPending}
                   onClick={() => triggerDeployMutation.mutate(true)}
-                  className="font-medium shadow-emerald-glow"
+                  className="w-full sm:w-auto h-auto min-h-[42px] py-2.5 px-3.5 text-xs sm:text-sm whitespace-normal text-center justify-center leading-snug font-medium shadow-emerald-glow"
                 >
                   {deployLiveStatus?.isRunning && deployLiveStatus.autoSwitch ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
                   ) : (
-                    <Rocket className="w-4 h-4 mr-2" />
+                    <Rocket className="w-4 h-4 mr-2 shrink-0" />
                   )}
-                  {t.admin.singleDeploy.deployAndSwitchBtn}
+                  <span>{t.admin.singleDeploy.deployAndSwitchBtn}</span>
                 </Button>
 
                 <Button
@@ -826,14 +828,14 @@ export default function AdminPage() {
                   size="default"
                   disabled={deployLiveStatus?.isRunning || triggerDeployMutation.isPending}
                   onClick={() => triggerDeployMutation.mutate(false)}
-                  className="font-medium hover:border-white/30"
+                  className="w-full sm:w-auto h-auto min-h-[42px] py-2.5 px-3.5 text-xs sm:text-sm whitespace-normal text-center justify-center leading-snug font-medium hover:border-white/30"
                 >
                   {deployLiveStatus?.isRunning && !deployLiveStatus.autoSwitch ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
                   ) : (
-                    <GitBranch className="w-4 h-4 mr-2" />
+                    <GitBranch className="w-4 h-4 mr-2 shrink-0" />
                   )}
-                  {t.admin.singleDeploy.deployBtn}
+                  <span>{t.admin.singleDeploy.deployBtn}</span>
                 </Button>
 
                 {deployLiveStatus && deployLiveStatus.logs.length > 0 && (
@@ -841,7 +843,7 @@ export default function AdminPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowTerminal(!showTerminal)}
-                    className="text-xs text-neutral-400 hover:text-white ml-auto"
+                    className="w-full sm:w-auto text-xs text-neutral-400 hover:text-white justify-center sm:justify-start sm:ml-auto h-auto py-2"
                   >
                     <Terminal className="w-3.5 h-3.5 mr-1.5" />
                     {showTerminal ? t.admin.singleDeploy.hideLogs : t.admin.singleDeploy.showLogs}
@@ -998,23 +1000,33 @@ export default function AdminPage() {
                 {t.admin.actions.desc}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-4 items-center">
+            <CardContent className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
               <Button
                 variant="emerald"
                 disabled={switchMutation.isPending}
                 onClick={() => switchMutation.mutate(standbySlot)}
+                className="w-full sm:w-auto h-auto min-h-[44px] py-2.5 px-4 text-xs sm:text-sm whitespace-normal text-center justify-center leading-snug"
               >
-                {switchMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ArrowRightLeft className="w-4 h-4 mr-2" />}
-                {t.admin.actions.promoteStandby.replace('{slot}', standbySlot.toUpperCase())}
+                {switchMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
+                ) : (
+                  <ArrowRightLeft className="w-4 h-4 mr-2 shrink-0" />
+                )}
+                <span>{t.admin.actions.promoteStandby.replace('{slot}', standbySlot.toUpperCase())}</span>
               </Button>
 
               <Button
                 variant="danger"
                 disabled={rollbackMutation.isPending}
                 onClick={() => rollbackMutation.mutate()}
+                className="w-full sm:w-auto h-auto min-h-[44px] py-2.5 px-4 text-xs sm:text-sm whitespace-normal text-center justify-center leading-snug"
               >
-                {rollbackMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
-                {t.admin.actions.rollback}
+                {rollbackMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
+                ) : (
+                  <RotateCcw className="w-4 h-4 mr-2 shrink-0" />
+                )}
+                <span>{t.admin.actions.rollback}</span>
               </Button>
             </CardContent>
           </Card>
@@ -1031,13 +1043,13 @@ export default function AdminPage() {
               <div className="divide-y divide-white/5 font-mono text-xs">
                 {history.map((record) => (
                   <div key={record.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <span className="font-semibold text-white">{record.commitMessage}</span>
-                      <div className="text-[11px] text-neutral-400 mt-0.5">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-semibold text-white break-words">{record.commitMessage}</span>
+                      <div className="text-[11px] text-neutral-400 mt-0.5 break-all">
                         commit: <span className="text-emerald-light">{record.commitHash}</span> • branch: {record.branch} • tag: {record.imageTag}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3 text-right">
+                    <div className="flex items-center space-x-3 shrink-0">
                       <Badge variant={record.slot === 'blue' ? 'sapphire' : 'emerald'}>
                         {record.slot.toUpperCase()}
                       </Badge>
@@ -1180,12 +1192,12 @@ export default function AdminPage() {
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
                 {projects?.map((project) => (
-                  <div key={project.id} className="p-4 flex items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-semibold text-sm text-white">{project.title}</h4>
-                      <p className="text-xs text-neutral-400 font-mono mt-0.5">{project.slug} • {project.category}</p>
+                  <div key={project.id} className="p-4 flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-sm text-white break-words">{project.title}</h4>
+                      <p className="text-xs text-neutral-400 font-mono mt-0.5 break-all">{project.slug} • {project.category}</p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
